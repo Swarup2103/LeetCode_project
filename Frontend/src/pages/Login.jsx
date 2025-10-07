@@ -1,0 +1,168 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { useEffect } from "react";
+import { loginUser } from "../authSlice";
+
+// --- Zod Schema for Login Validation ---
+const loginSchema = z.object({
+    emailId: z.string().email("Invalid email address"),
+    password: z.string().min(1, "Password is required"), // Min 1 to ensure it's not empty
+});
+
+// --- Main Login Component ---
+function Login() {
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+        resolver: zodResolver(loginSchema)
+    });
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
+
+    useEffect(()=>{
+        if(isAuthenticated){
+            navigate('/');
+        }
+    }, [isAuthenticated]);
+
+    const onSubmit = (data) => {
+        dispatch(loginUser(data));
+    };
+
+    // --- Social Icons ---
+    const GoogleIcon = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.19,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.19,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.19,22C17.6,22 21.54,18.33 21.54,12.81C21.54,11.76 21.45,11.44 21.35,11.1Z"></path></svg>
+    );
+    const GithubIcon = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.83,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path></svg>
+    );
+
+    return (
+        <div data-theme="cupcake" className="min-h-screen bg-base-200 flex items-center justify-center p-4">
+            <div className="card w-full max-w-md shadow-2xl bg-base-100">
+                <div className="card-body p-6">
+
+                    <div className="flex flex-col items-center text-center mb-4">
+                        <img 
+                            src="https://assets.leetcode.com/static_assets/public/webpack_bundles/images/logo.c36eaf5e6.svg" 
+                            alt="Logo of Platform" 
+                            className="h-22 w-auto mb-3"
+                        />
+                    </div>
+
+                    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                        {/* Email Input */}
+                        <div className="form-control">
+                            <label className="label py-1">
+                                <span className="label-text">Email</span>
+                            </label>
+                            <input 
+                                {...register('emailId')} 
+                                type="email" 
+                                placeholder="Username or E-mail" 
+                                className={`input input-bordered w-full ${errors.emailId ? 'input-error' : ''}`} 
+                            />
+                            {errors.emailId && <span className="text-error text-xs mt-1">{errors.emailId.message}</span>}
+                        </div>
+                        
+                        {/* Password Input */}
+                        <div className="form-control mt-3">
+                            <label className="label py-1">
+                                <span className="label-text">Password</span>
+                                
+                            </label>
+                            <input 
+                                {...register('password')} 
+                                type="password" 
+                                placeholder="Password" 
+                                className={`input input-bordered w-full ${errors.password ? 'input-error' : ''}`} 
+                            />
+                            {errors.password && <span className="text-error text-xs mt-1">{errors.password.message}</span>}
+                        </div>
+
+                        {/* Submit Button */}
+                        <div className="form-control mt-6">
+                             <button 
+                                type="submit" 
+                                className="btn w-full bg-[#4A626C] hover:bg-[#3E525A] text-white border-none" 
+                                disabled={isSubmitting}
+                             >
+                                {isSubmitting ? <span className="loading loading-spinner"></span> : "Sign In"}
+                            </button>
+                        </div>
+
+                        <label className="label py-1">
+                            <a href="#" className="label-text-alt link link-hover text-sm">Forgot password?</a>
+                        </label>
+                    </form>
+                    
+                    <div className="divider my-4">OR</div>
+
+                    <div className="flex justify-center gap-4">
+                        <button className="btn btn-square btn-outline">
+                            <GoogleIcon />
+                        </button>
+                         <button className="btn btn-square btn-outline">
+                            <GithubIcon />
+                        </button>
+                    </div>
+                    
+                    <div className="text-center mt-4">
+                        <p className="text-sm">
+                            Don't have an account? 
+                            <a href="" className="link link-primary ml-1">Sign Up</a>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default Login;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*import { useForm } from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+//Schema validation
+const signUpSchema = z.object({
+    emailId: z.string().email('Invalid Email'),
+    password: z.string().min(8, "Password should contain atleast 8 characters")
+})
+
+function Login(){
+    const {register, handleSubmit, formState: {errors}} = useForm({resolver:zodResolver(signUpSchema)});
+    return(
+        <>
+        <form onSubmit = {handleSubmit((data) => console.log(data))}>
+            <input {...register('emailId')} placeholder="Enater mailId"></input>
+            {errors.emailId && (<span>{errors.emailId.message}</span>)} 
+
+            <input {...register('password')} placeholder="Enter password" type="password"></input>
+            {errors.password ? (<span> {errors.password.message} </span>) : null} 
+
+            <button type="submit" className="btn btn-lg">Submit</button>
+        </form>
+        </>
+    )
+}
+
+export default Login;*/
