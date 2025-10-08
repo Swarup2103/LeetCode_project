@@ -2,34 +2,37 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router";
-import { useEffect } from "react";
+import { Link, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
 import { registerUser } from "../authSlice";
 
 // --- Zod Schema for Validation ---
-// Added a confirmPassword field and a check to ensure they match.
 const signUpSchema = z.object({
-    firstName : z.string().min(3, "Full name must be at least 3 characters"),
+    firstName: z.string().min(3, "Full name must be at least 3 characters"),
     emailId: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
     message: "Passwords do not match",
-    path: ["confirmPassword"], // Path to show the error on
+    path: ["confirmPassword"],
 });
 
 // --- Main SignUp Component ---
 function SignUp() {
+    // State for toggling password visibility
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { isAuthenticated, loading, error } = useSelector((state) => state.auth );
+    const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
 
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
         resolver: zodResolver(signUpSchema)
     });
 
-    useEffect(()=>{
-        if(isAuthenticated){
+    useEffect(() => {
+        if (isAuthenticated) {
             navigate('/');
         }
     }, [isAuthenticated, navigate]);
@@ -38,7 +41,7 @@ function SignUp() {
         dispatch(registerUser(data));
     };
 
-    // --- Social Icons (as simple inline SVGs for easy styling) ---
+    // --- Social Icons ---
     const GoogleIcon = () => (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.19,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.19,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.19,22C17.6,22 21.54,18.33 21.54,12.81C21.54,11.76 21.45,11.44 21.35,11.1Z"></path></svg>
     );
@@ -47,26 +50,18 @@ function SignUp() {
     );
 
     return (
-        // --- Main container with light theme and centering ---
         <div data-theme="cupcake" className="min-h-screen bg-base-200 flex items-center justify-center p-4">
-            
-            {/* --- Form Card --- */}
             <div className="card w-full max-w-md shadow-2xl bg-base-100">
                 <div className="card-body p-6">
-
-                    {/* --- Aligned Header --- */}
                     <div className="flex flex-col items-center text-center mb-4">
                         <img 
                             src="https://assets.leetcode.com/static_assets/public/webpack_bundles/images/logo.c36eaf5e6.svg" 
                             alt="Logo of Platform" 
                             className="h-22 w-auto mb-3"
                         />
-                        
                     </div>
 
-                    {/* --- Form --- */}
                     <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                        
                         {/* Full Name Input */}
                         <div className="form-control">
                             <label className="label py-1">
@@ -76,9 +71,9 @@ function SignUp() {
                                 {...register('firstName')} 
                                 type="text" 
                                 placeholder="Username" 
-                                className={`input input-bordered w-full ${errors.firstName  ? 'input-error' : ''}`}
+                                className={`input input-bordered w-full ${errors.firstName ? 'input-error' : ''}`}
                             />
-                            {errors.firstName  && <span className="text-error text-xs mt-1">{errors.firstName .message}</span>}
+                            {errors.firstName && <span className="text-error text-xs mt-1">{errors.firstName.message}</span>}
                         </div>
 
                         {/* Email Input */}
@@ -96,36 +91,75 @@ function SignUp() {
                         </div>
                         
                         {/* Password Input */}
-                        <div className="form-control mt-3">
+                        <div className="form-control mt-3 relative">
                             <label className="label py-1">
                                 <span className="label-text">Password</span>
                             </label>
                             <input 
                                 {...register('password')} 
-                                type="password" 
+                                type={showPassword ? "text" : "password"}
                                 placeholder="Password" 
-                                className={`input input-bordered w-full ${errors.password ? 'input-error' : ''}`} 
+                                className={`input input-bordered w-full pr-10 ${errors.password ? 'input-error' : ''}`} 
                             />
+                            <button
+                                type="button"
+                                className="absolute top-1/2 right-3 transform translate-y-1 text-gray-400 hover:text-gray-600"
+                                onClick={() => setShowPassword(!showPassword)}
+                                aria-label={showPassword ? "Hide password" : "Show password"} 
+                            >
+                                {showPassword ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                                        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+                                        <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+                                        <line x1="2" x2="22" y1="2" y2="22"/>
+                                    </svg>
+                                )}
+                            </button>
                             {errors.password && <span className="text-error text-xs mt-1">{errors.password.message}</span>}
                         </div>
                         
                         {/* Confirm Password Input */}
-                        <div className="form-control mt-3">
+                        <div className="form-control mt-3 relative">
                             <label className="label py-1">
                                 <span className="label-text">Confirm Password</span>
                             </label>
                             <input 
                                 {...register('confirmPassword')} 
-                                type="password" 
+                                type={showConfirmPassword ? "text" : "password"}
                                 placeholder="Confirm Password" 
-                                className={`input input-bordered w-full ${errors.confirmPassword ? 'input-error' : ''}`} 
+                                className={`input input-bordered w-full pr-10 ${errors.confirmPassword ? 'input-error' : ''}`} 
                             />
+                             <button
+                                type="button"
+                                className="absolute top-1/2 right-3 transform translate-y-1 text-gray-400 hover:text-gray-600"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                aria-label={showConfirmPassword ? "Hide password" : "Show password"} 
+                            >
+                                {showConfirmPassword ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                                        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+                                        <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+                                        <line x1="2" x2="22" y1="2" y2="22"/>
+                                    </svg>
+                                )}
+                            </button>
                             {errors.confirmPassword && <span className="text-error text-xs mt-1">{errors.confirmPassword.message}</span>}
                         </div>
 
-                
                         {/* Submit Button */}
-                        <div className="form-control mt-4">
+                        <div className="form-control mt-6">
                              <button 
                                 type="submit" 
                                 className="btn w-full bg-[#4A626C] hover:bg-[#3E525A] text-white border-none" 
@@ -136,10 +170,8 @@ function SignUp() {
                         </div>
                     </form>
                     
-                    {/* Divider */}
                     <div className="divider my-4">OR</div>
 
-                    {/* Social Login Buttons */}
                     <div className="flex justify-center gap-4">
                         <button className="btn btn-square btn-outline">
                             <GoogleIcon />
@@ -149,14 +181,13 @@ function SignUp() {
                         </button>
                     </div>
                     
-                     {/* Link to Sign In Page */}
                     <div className="text-center mt-4">
                         <p className="text-sm">
                             Already have an account? 
-                            <a href="#" className="link link-primary ml-1">Sign In</a>
+                            {/* FIX: Use Link component for client-side navigation */}
+                            <Link to="/login" className="link link-primary ml-1">Sign In</Link>
                         </p>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -164,6 +195,8 @@ function SignUp() {
 }
 
 export default SignUp;
+
+
 
 
 

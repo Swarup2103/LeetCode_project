@@ -28,7 +28,10 @@ const userMiddleware = async (req, res, next)=>{
         next();
     }
     catch(err){
-        console.log('Error: '+err);
+        // FIX: The catch block MUST send a response to the client.
+        // This handles errors like an expired or malformed JWT.
+        console.error('Middleware Error:', err.message); // Log the actual error for debugging
+        return res.status(401).json({ message: 'Authentication failed: Invalid or expired token.' });
     }
 
 }
