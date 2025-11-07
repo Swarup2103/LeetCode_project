@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../utils/axiosClient.js';
+import axiosClient from '../utils/axiosClient'; // <-- Removed .js extension
+import UploadVideoModal from '../components/UploadVideoModel'; // <-- Changed path to components
 
 export default function AdminPanel() {
   const [problems, setProblems] = useState([]);
@@ -13,6 +14,11 @@ export default function AdminPanel() {
   });
   const navigate = useNavigate();
 
+  // --- New state for the modal ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProblem, setSelectedProblem] = useState(null);
+  // ---
+
   useEffect(() => {
     fetchProblems();
   }, []);
@@ -24,7 +30,6 @@ export default function AdminPanel() {
       const problemsData = response.data.problems || [];
       setProblems(problemsData);
       
-      // Calculate stats
       const stats = problemsData.reduce((acc, p) => {
         acc.total++;
         if (p.difficulty?.toLowerCase() === 'easy') acc.easy++;
@@ -42,10 +47,10 @@ export default function AdminPanel() {
   };
 
   const handleDelete = async (problemId) => {
-    if (window.confirm('Are you sure you want to delete this problem?')) {
+    // Note: Using window.confirm() as in your original file.
+    if (window.confirm('Are you sure you want to delete this problem? This will NOT delete the video. Delete the video separately.')) {
       try {
         await axiosClient.delete(`/problem/delete/${problemId}`);
-        // Refetch problems to update list and stats
         fetchProblems();
       } catch (error) {
         console.error('Failed to delete problem:', error);
@@ -53,6 +58,30 @@ export default function AdminPanel() {
       }
     }
   };
+
+  // --- Handlers for video modal and deletion ---
+  const handleOpenUploadModal = (problem) => {
+    setSelectedProblem(problem);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProblem(null);
+  };
+
+  const handleDeleteVideo = async (problemId) => {
+    if (window.confirm('Are you sure you want to delete the video for this problem? This action cannot be undone.')) {
+      try {
+        await axiosClient.delete(`/video/delete/${problemId}`);
+        alert('Video deleted successfully.');
+      } catch (error) {
+        console.error('Failed to delete video:', error);
+        alert('Failed to delete video. It might not exist.');
+      }
+    }
+  };
+  // ---
 
   const getDifficultyBadge = (difficulty) => {
     const classes = {
@@ -76,6 +105,16 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-base-100">
+      {/* Render the modal */}
+      {selectedProblem && (
+        <UploadVideoModal
+          problemId={selectedProblem._id}
+          problemTitle={selectedProblem.title}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -99,6 +138,7 @@ export default function AdminPanel() {
 
       {/* Stats Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
+        {/* Stats cards... (omitted for brevity, no changes) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl">
             <div className="card-body">
@@ -165,6 +205,7 @@ export default function AdminPanel() {
           </div>
         </div>
 
+
         {/* Problems Table */}
         <div className="card bg-base-200 shadow-xl border border-base-300">
           <div className="card-body">
@@ -186,6 +227,21 @@ export default function AdminPanel() {
                         <td><span className={`badge ${getDifficultyBadge(problem.difficulty)}`}>{problem.difficulty}</span></td>
                         <td><span className="badge badge-outline">{problem.tags}</span></td>
                         <td className="text-right space-x-2">
+                          {/* --- New Video Buttons --- */}
+                          <button
+                            onClick={() => handleOpenUploadModal(problem)}
+                            className="btn btn-sm btn-info btn-ghost"
+                          >
+                            Upload Video
+                          </button>
+                          <button
+                            onClick={() => handleDeleteVideo(problem._id)}
+                            className="btn btn-sm btn-error btn-outline"
+                          >
+                            Delete Video
+                          </button>
+                          {/* --- End New Buttons --- */}
+
                           <button
                             onClick={() => navigate(`/admin/edit-problem/${problem._id}`)}
                             className="btn btn-sm btn-ghost"
@@ -213,4 +269,3 @@ export default function AdminPanel() {
     </div>
   );
 }
-

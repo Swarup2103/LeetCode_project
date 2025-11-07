@@ -256,7 +256,7 @@ export default function ProfilePage() {
                             <h3 className="text-lg font-semibold mb-4">Languages</h3>
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm">C++</span>
+                                    <span className="text-sm">cpp</span>
                                     <progress className="progress progress-success w-2/3" value={solvedStats.total > 0 ? "70" : "0"} max="100"></progress>
                                 </div>
                                  <div className="flex justify-between items-center">

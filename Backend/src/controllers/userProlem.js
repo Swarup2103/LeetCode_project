@@ -3,6 +3,7 @@ const Problem = require('../models/problem');
 const User = require('../models/user');
 const { findById } = require('../models/user');
 const Submission = require('../models/submission');
+const SolutionVideo = require('../models/solutionVideo')
 
 const createProblem = async(req, res) =>{
     const {title, description, difficulty, tags, 
@@ -164,8 +165,22 @@ const getProblemById = async(req, res) =>{
     const getProblem = await Problem.findById(id).select('title description difficulty tags visibleTestCases startCode referenceSolution');
     if(!getProblem)
       return res.status(404).send('Problem is Missing..');
+    // video ka jo bhi url wagera le aao
+    const videos = await SolutionVideo.findOne({problemId:id});
 
-    res.status(200).send(getProblem);
+   if(videos){   
+    
+   const responseData = {
+    ...getProblem.toObject(),
+    secureUrl:videos.secureUrl,
+    thumbnailUrl : videos.thumbnailUrl,
+    duration : videos.duration,
+   } 
+  
+   return res.status(200).send(responseData);
+   }
+    
+   res.status(200).send(getProblem);
   }
   catch(err){
     res.status(500).send('Error: '+err);

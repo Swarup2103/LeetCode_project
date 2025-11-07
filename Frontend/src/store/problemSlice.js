@@ -38,7 +38,7 @@ const problemSlice = createSlice({
                 
                 // Set starter code for all languages
                 state.codeByLanguage = {
-                    cpp: starterCode.find(sc => sc.language === 'c++')?.initialCode || '// C++ starter code',
+                    cpp: starterCode.find(sc => sc.language === 'cpp')?.initialCode || '// cpp starter code',
                     java: starterCode.find(sc => sc.language === 'java')?.initialCode || '// Java starter code',
                     javascript: starterCode.find(sc => sc.language === 'javascript')?.initialCode || '// JavaScript starter code',
                 };
